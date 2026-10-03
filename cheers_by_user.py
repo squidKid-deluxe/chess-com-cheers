@@ -100,10 +100,22 @@ def group_by_user(cheers):
     ordered = dict(
         sorted(grouped.items(), key=lambda kv: (-len(kv[1]), kv[0].lower()))
     )
-    # Within each user: newest first.
+    # Within each user: newest first (non-numeric/missing dates sort last).
     for giver in ordered:
-        ordered[giver].sort(key=lambda c: c.get("create_date", 0), reverse=True)
+        ordered[giver].sort(key=_sort_key, reverse=True)
     return ordered
+
+
+def _sort_key(c):
+    ts = c.get("create_date")
+    if isinstance(ts, bool):
+        return (0, 0)
+    if isinstance(ts, (int, float)):
+        return (1, int(ts))
+    try:
+        return (1, int(ts))
+    except (TypeError, ValueError):
+        return (0, 0)
 
 
 GAP_SECONDS = 3 * 86400
@@ -177,7 +189,7 @@ def print_report(username, grouped):
 
 
 def write_json(path, username, grouped):
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         json.dump({"user": username, "by_giver": grouped}, f, indent=2)
 
 
@@ -189,7 +201,7 @@ def write_html(path, username, grouped):
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cheers for {safe_user} by giver</title>
 <style>body{{background:#121212;color:#e8e8e8;font-family:sans-serif;max-width:900px;margin:2rem auto;padding:0 1rem}}h1{{font-size:1.4rem}}</style>
 </head><body><h1>Cheers for {safe_user} — 0 cheers</h1><p>No cheers found.</p></body></html>"""
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             f.write(doc)
         return
     top = list(grouped.items())[:5]
@@ -200,7 +212,7 @@ def write_html(path, username, grouped):
     cards = []
     for giver, cheers in grouped.items():
         anchor = f"giver-{html.escape(giver.lower().replace(' ', '-'))}"
-        avatar = next(filter(None, (c.get("from_user_avatar") or "" for c in cheers)), "")
+        avatar = next(filter(None, ((c.get("from_user_avatar") or "").strip() for c in cheers)), "")
         avatar_tag = (
             f'<img src="{html.escape(avatar, quote=True)}" alt="" width="40" height="40" loading="lazy">'
             if avatar
@@ -210,7 +222,7 @@ def write_html(path, username, grouped):
         for idx, (label, members) in enumerate(cluster_by_date(cheers)):
             rows = []
             for c in members:
-                img = c.get("custom_image_url") or ""
+                img = (c.get("custom_image_url") or "").strip()
                 img_tag = (
                     f'<img src="{html.escape(img, quote=True)}" alt="" width="48" height="48" loading="lazy">'
                     if img
@@ -230,7 +242,7 @@ def write_html(path, username, grouped):
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cheers for {safe_user} by giver</title>
 <style>body{{background:#121212;color:#e8e8e8;font-family:sans-serif;max-width:900px;margin:2rem auto;padding:0 1rem}}a{{color:#7ab648}}.card{{background:#1e1e1e;border:1px solid #333;border-radius:8px;padding:1rem;margin:1rem 0}}.card header{{display:flex;align-items:center;gap:.75rem}}.card img{{border-radius:50%}}.badge{{background:#7ab648;color:#121212;border-radius:999px;padding:.1rem .6rem;font-weight:bold}}details{{margin-top:.75rem}}summary{{cursor:pointer}}ul{{list-style:none;padding:0}}li{{display:flex;align-items:center;gap:.5rem;padding:.25rem 0}}time{{color:#999;margin-left:auto}}@media(max-width:600px){{body{{margin:1rem auto}}}}</style>
 </head><body><h1>Cheers for {safe_user} — {total} cheers from {len(grouped)} givers</h1><nav><h2>Top givers</h2><ol>{links}</ol></nav>{''.join(cards)}</body></html>"""
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         f.write(doc)
 
 
@@ -238,7 +250,7 @@ def main(argv):
     username = "squidkid-deluxe"
     json_out = html_out = None
     args = [a for a in argv[1:] if a]
-    # very small arg parser: [username] [--json path] [--html path]
+    # very small arg parser: [username] [--json path] [--html path] [--no-html] [--no-progress]
     positional = [a for a in args if not a.startswith("--")]
     if positional:
         username = positional[0]
