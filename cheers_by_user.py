@@ -96,14 +96,15 @@ def group_by_user(cheers):
     for cheer in cheers:
         giver = cheer.get("from_user") or "(unknown)"
         grouped[giver].append(cheer)
-    # Order users: most cheers first, then alphabetically (case-insensitive).
-    ordered = dict(
-        sorted(grouped.items(), key=lambda kv: (-len(kv[1]), kv[0].lower()))
-    )
+    # Order givers by most recent cheer first, then most cheers, then A–Z.
     # Within each user: newest first (non-numeric/missing dates sort last).
-    for giver in ordered:
-        ordered[giver].sort(key=_sort_key, reverse=True)
-    return ordered
+    def giver_key(kv):
+        giver, items = kv
+        items.sort(key=_sort_key, reverse=True)
+        latest = _sort_key(items[0])  # newest cheer after sort
+        return (-latest[0], -latest[1], -len(items), giver.lower())
+
+    return dict(sorted(grouped.items(), key=giver_key))
 
 
 def _sort_key(c):
@@ -263,7 +264,7 @@ def write_html(path, username, grouped):
     doc = f"""<!doctype html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cheers for {safe_user} by giver</title>
 <style>body{{background:#121212;color:#e8e8e8;font-family:sans-serif;max-width:900px;margin:2rem auto;padding:0 1rem}}a{{color:#7ab648}}.card{{background:#1e1e1e;border:1px solid #333;border-radius:8px;padding:1rem;margin:1rem 0}}.card header{{display:flex;align-items:center;gap:.75rem}}.card img{{border-radius:50%}}.badge{{background:#7ab648;color:#121212;border-radius:999px;padding:.1rem .6rem;font-weight:bold}}details{{margin-top:.75rem}}summary{{cursor:pointer}}ul{{list-style:none;padding:0}}li{{display:flex;align-items:center;gap:.5rem;padding:.25rem 0}}time{{color:#999;margin-left:auto}}.count{{background:#333;border-radius:6px;padding:.1rem .4rem;font-size:.85rem;white-space:nowrap}}@media(max-width:600px){{body{{margin:1rem auto}}}}</style>
-</head><body><h1>Cheers for {safe_user} — {total} cheers from {len(grouped)} givers</h1><nav><h2>Top givers</h2><ol>{links}</ol></nav>{''.join(cards)}</body></html>"""
+</head><body><h1>Cheers for {safe_user} — {total} cheers from {len(grouped)} givers</h1><nav><h2>Latest givers</h2><ol>{links}</ol></nav>{''.join(cards)}</body></html>"""
     with open(path, "w", encoding="utf-8") as f:
         f.write(doc)
 

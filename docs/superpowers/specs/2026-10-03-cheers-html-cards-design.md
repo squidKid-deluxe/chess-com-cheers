@@ -19,13 +19,14 @@ visually separable so already-thanked gifts aren't re-mentioned.
   opt-in via `--json`.
 
 ## 2. Card layout (dark mode required)
-- One card per giver, ordered most-cheers-first then A–Z (matches terminal).
+- One card per giver, ordered by most recent cheer first (then most cheers,
+  then A–Z; givers with no valid dates sort last).
 - Card header: avatar (`from_user_avatar`), giver name, total-count badge.
 - Body: date clusters newest-first; newest cluster `<details open>`, older
   collapsed.
 - Cheer row: trophy thumbnail (`custom_image_url`), trophy name, date
   `YYYY-MM-DD`, description as hover `title`.
-- Page header: `Cheers for <user> — N cheers from M givers` + top-5 giver
+- Page header: `Cheers for <user> — N cheers from M givers` + latest-5 giver
   leaderboard with anchor links to cards.
 - Styling: forced dark theme (dark background, light text, chess.com-ish
   green accents), card grid, responsive single column on mobile.

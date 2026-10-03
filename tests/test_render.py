@@ -38,7 +38,7 @@ check("to" in doc or "— 1 cheer" in doc, "cluster label with range/count")
 check("https://img/x.png" in doc and "https://img/a.png" in doc, "images kept when present")
 check(doc.count("<img") == 2, f"no img tags for empty urls (found {doc.count('<img')})")
 check('id="giver-b-giver"' in doc, "card anchor id present")
-check("Top givers" in doc, "leaderboard present")
+check("Latest givers" in doc, "leaderboard present")
 check("×2" in doc, "repeated cheers in one cluster collapse to xN")
 check(doc.count(">Taco<") == 1, "collapsed repeat renders a single row")
 

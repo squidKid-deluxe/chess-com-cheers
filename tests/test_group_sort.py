@@ -32,4 +32,18 @@ clusters = cluster_by_date(grouped["alice"])
 check(clusters[-1][0].startswith("Unknown date"), "bad timestamps land in trailing Unknown-date cluster")
 check(len(clusters[-1][1]) == 3, "unknown cluster has 3 cheers")
 
+recency = group_by_user(
+    [
+        {"from_user": "old_money", "id": 10, "create_date": 1790000000},
+        {"from_user": "old_money", "id": 11, "create_date": 1790000100},
+        {"from_user": "old_money", "id": 12, "create_date": 1790000200},
+        {"from_user": "newbie", "id": 20, "create_date": 1791000000},
+        {"from_user": "mystery", "id": 30, "create_date": "not-a-timestamp"},
+    ]
+)
+check(
+    list(recency) == ["newbie", "old_money", "mystery"],
+    "givers ordered by most recent cheer, undated last",
+)
+
 print("all group sort tests passed")
