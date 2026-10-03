@@ -14,8 +14,9 @@ visually separable so already-thanked gifts aren't re-mentioned.
   assets except hotlinked chess.com `custom_image_url` + `from_user_avatar`.
 - No backend, no localStorage, no build step.
 - Default behavior: running `python3 cheers_by_user.py <user>` with no flags
-  writes `<user>-cheers.html` into the current working directory. `--html path`
-  overrides, `--no-html` suppresses. JSON stays opt-in via `--json`.
+  writes `<user>-cheers.html` (lowercased) into the current working directory.
+  `--html path` overrides (used verbatim), `--no-html` suppresses. JSON stays
+  opt-in via `--json`.
 
 ## 2. Card layout (dark mode required)
 - One card per giver, ordered most-cheers-first then A–Z (matches terminal).
@@ -38,6 +39,9 @@ visually separable so already-thanked gifts aren't re-mentioned.
 - Cluster label shows true range + count: single day
   `2026-10-02 — 10 cheers`; span `2026-09-20 to 2026-09-23 — 5 cheers`.
 - Single-cheer clusters render as one row without extra nesting.
+- Within a cluster, identical cheers (same trophy, image, and description)
+  collapse to one row with a `×N` badge and the date (single day) or date span
+  of the collapsed group, newest-first by first occurrence.
 - Missing/bad timestamps → `Unknown date` cluster at the bottom.
 - No persistence: reload re-renders from fresh fetch; "already thanked" is
   eyeballed by cluster.

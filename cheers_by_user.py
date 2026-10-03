@@ -193,6 +193,24 @@ def write_json(path, username, grouped):
         json.dump({"user": username, "by_giver": grouped}, f, indent=2)
 
 
+def collapse_repeats(members):
+    """Collapse identical cheers (same trophy+image+description), newest-first."""
+    groups = []
+    index = {}
+    for c in members:
+        key = (
+            c.get("trophy"),
+            (c.get("custom_image_url") or "").strip(),
+            c.get("description") or "",
+        )
+        if key in index:
+            groups[index[key]][1].append(c)
+        else:
+            index[key] = len(groups)
+            groups.append((key, [c]))
+    return groups
+
+
 def write_html(path, username, grouped):
     total = sum(len(v) for v in grouped.values())
     safe_user = html.escape(username)
@@ -221,16 +239,20 @@ def write_html(path, username, grouped):
         parts = [f'<section class="card" id="{anchor}"><header>{avatar_tag}<h2>{html.escape(giver)}</h2><span class="badge">{len(cheers)}</span></header>']
         for idx, (label, members) in enumerate(cluster_by_date(cheers)):
             rows = []
-            for c in members:
-                img = (c.get("custom_image_url") or "").strip()
+            for (_trophy, _img, _desc), items in collapse_repeats(members):
                 img_tag = (
-                    f'<img src="{html.escape(img, quote=True)}" alt="" width="48" height="48" loading="lazy">'
-                    if img
+                    f'<img src="{html.escape(_img, quote=True)}" alt="" width="48" height="48" loading="lazy">'
+                    if _img
                     else ""
                 )
-                desc = html.escape(str(c.get("description") or ""))
+                desc = html.escape(str(_desc))
+                n = len(items)
+                count = f'<b class="count">×{n}</b>' if n > 1 else ""
+                first = fmt_date(items[0].get("create_date"))
+                last = fmt_date(items[-1].get("create_date"))
+                span = first if first == last or n == 1 else f"{last} – {first}"
                 rows.append(
-                    f'<li title="{desc}">{img_tag}<span>{html.escape(str(c.get("trophy", "?")))}</span><time>{html.escape(fmt_date(c.get("create_date")))}</time></li>'
+                    f'<li title="{desc}">{img_tag}<span>{html.escape(str(_trophy or "?"))}</span>{count}<time>{html.escape(span)}</time></li>'
                 )
             open_attr = " open" if idx == 0 else ""
             parts.append(
@@ -240,7 +262,7 @@ def write_html(path, username, grouped):
         cards.append("".join(parts))
     doc = f"""<!doctype html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cheers for {safe_user} by giver</title>
-<style>body{{background:#121212;color:#e8e8e8;font-family:sans-serif;max-width:900px;margin:2rem auto;padding:0 1rem}}a{{color:#7ab648}}.card{{background:#1e1e1e;border:1px solid #333;border-radius:8px;padding:1rem;margin:1rem 0}}.card header{{display:flex;align-items:center;gap:.75rem}}.card img{{border-radius:50%}}.badge{{background:#7ab648;color:#121212;border-radius:999px;padding:.1rem .6rem;font-weight:bold}}details{{margin-top:.75rem}}summary{{cursor:pointer}}ul{{list-style:none;padding:0}}li{{display:flex;align-items:center;gap:.5rem;padding:.25rem 0}}time{{color:#999;margin-left:auto}}@media(max-width:600px){{body{{margin:1rem auto}}}}</style>
+<style>body{{background:#121212;color:#e8e8e8;font-family:sans-serif;max-width:900px;margin:2rem auto;padding:0 1rem}}a{{color:#7ab648}}.card{{background:#1e1e1e;border:1px solid #333;border-radius:8px;padding:1rem;margin:1rem 0}}.card header{{display:flex;align-items:center;gap:.75rem}}.card img{{border-radius:50%}}.badge{{background:#7ab648;color:#121212;border-radius:999px;padding:.1rem .6rem;font-weight:bold}}details{{margin-top:.75rem}}summary{{cursor:pointer}}ul{{list-style:none;padding:0}}li{{display:flex;align-items:center;gap:.5rem;padding:.25rem 0}}time{{color:#999;margin-left:auto}}.count{{background:#333;border-radius:6px;padding:.1rem .4rem;font-size:.85rem;white-space:nowrap}}@media(max-width:600px){{body{{margin:1rem auto}}}}</style>
 </head><body><h1>Cheers for {safe_user} — {total} cheers from {len(grouped)} givers</h1><nav><h2>Top givers</h2><ol>{links}</ol></nav>{''.join(cards)}</body></html>"""
     with open(path, "w", encoding="utf-8") as f:
         f.write(doc)
@@ -268,7 +290,7 @@ def main(argv):
         write_json(json_out, username, grouped)
         print(f"Wrote {json_out}", file=sys.stderr)
     if not no_html:
-        html_path = html_out or f"{username}-cheers.html"
+        html_path = html_out or f"{username}-cheers.html".lower()
         write_html(html_path, username, grouped)
         print(f"Wrote {html_path}", file=sys.stderr)
 

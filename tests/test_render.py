@@ -14,6 +14,9 @@ grouped = {
         {"id": 1, "create_date": 1791000000 - 30 * 86400, "trophy": "Taco",
          "description": "", "custom_image_url": "https://img/x.png",
          "from_user_avatar": "https://img/a.png"},
+        {"id": 3, "create_date": 1791000000 - 30 * 86400 - 3600, "trophy": "Taco",
+         "description": "", "custom_image_url": "https://img/x.png",
+         "from_user_avatar": "https://img/a.png"},
     ],
 }
 
@@ -36,6 +39,8 @@ check("https://img/x.png" in doc and "https://img/a.png" in doc, "images kept wh
 check(doc.count("<img") == 2, f"no img tags for empty urls (found {doc.count('<img')})")
 check('id="giver-b-giver"' in doc, "card anchor id present")
 check("Top givers" in doc, "leaderboard present")
+check("×2" in doc, "repeated cheers in one cluster collapse to xN")
+check(doc.count(">Taco<") == 1, "collapsed repeat renders a single row")
 
 write_html("/tmp/render-empty.html", "Nobody", {})
 empty = open("/tmp/render-empty.html").read()
