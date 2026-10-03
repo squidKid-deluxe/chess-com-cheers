@@ -251,14 +251,22 @@ def write_html(path, username, grouped):
                     f'<li title="{desc}">{img_tag}<span>{html.escape(str(_trophy or "?"))}</span>{count}<time>{html.escape(span)}</time></li>'
                 )
             open_attr = " open" if idx == 0 else ""
+            if len(rows) > 3:
+                body = (
+                    f"<ul>{''.join(rows[:3])}</ul>"
+                    f'<details class="more"><summary>Show all {len(rows)}</summary>'
+                    f"<ul>{''.join(rows[3:])}</ul></details>"
+                )
+            else:
+                body = f"<ul>{''.join(rows)}</ul>"
             parts.append(
-                f'<details{open_attr}><summary>{html.escape(label)}</summary><ul>{"".join(rows)}</ul></details>'
+                f'<details{open_attr}><summary>{html.escape(label)}</summary>{body}</details>'
             )
         parts.append("</section>")
         cards.append("".join(parts))
     doc = f"""<!doctype html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cheers for {safe_user} by giver</title>
-<style>body{{background:#121212;color:#e8e8e8;font-family:sans-serif;max-width:1100px;margin:2rem auto;padding:0 1rem}}a{{color:#7ab648}}.grid{{display:grid;gap:1rem;grid-template-columns:1fr}}.card{{background:#1e1e1e;border:1px solid #333;border-radius:8px;padding:1rem;margin:0}}.card header{{display:flex;align-items:center;gap:.75rem}}.card img{{border-radius:50%}}.badge{{background:#7ab648;color:#121212;border-radius:999px;padding:.1rem .6rem;font-weight:bold}}.count{{background:#333;border-radius:6px;padding:.1rem .4rem;font-size:.85rem;white-space:nowrap}}details{{margin-top:.75rem}}summary{{cursor:pointer}}ul{{list-style:none;padding:0}}li{{display:flex;align-items:center;gap:.5rem;padding:.25rem 0}}time{{color:#999;margin-left:auto}}@media(max-width:600px){{body{{margin:1rem auto}}}}@media(min-width:900px){{.grid{{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}}}}</style>
+<style>body{{background:#121212;color:#e8e8e8;font-family:sans-serif;max-width:1100px;margin:2rem auto;padding:0 1rem}}a{{color:#7ab648}}.grid{{display:grid;gap:1rem;grid-template-columns:1fr}}.card{{background:#1e1e1e;border:1px solid #333;border-radius:8px;padding:1rem;margin:0}}.card header{{display:flex;align-items:center;gap:.75rem}}.card img{{border-radius:50%}}.badge{{background:#7ab648;color:#121212;border-radius:999px;padding:.1rem .6rem;font-weight:bold}}.count{{background:#333;border-radius:6px;padding:.1rem .4rem;font-size:.85rem;white-space:nowrap}}details{{margin-top:.75rem}}summary{{cursor:pointer}}.more summary{{font-size:.85rem;color:#999}}ul{{list-style:none;padding:0}}li{{display:flex;align-items:center;gap:.5rem;padding:.25rem 0}}time{{color:#999;margin-left:auto}}@media(max-width:600px){{body{{margin:1rem auto}}}}@media(min-width:900px){{body{{max-width:70%}}.grid{{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}}}}</style>
 </head><body><h1>Cheers for {safe_user} — {total} cheers from {len(grouped)} givers</h1><div class="grid">{''.join(cards)}</div></body></html>"""
     with open(path, "w", encoding="utf-8") as f:
         f.write(doc)
