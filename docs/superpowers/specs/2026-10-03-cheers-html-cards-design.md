@@ -28,7 +28,8 @@ visually separable so already-thanked gifts aren't re-mentioned.
   `YYYY-MM-DD`, description as hover `title`.
 - Page header only (`Cheers for <user> — N cheers from M givers`); no
   leaderboard nav. Cards sit in a responsive grid: single column narrow,
-  auto-filling 320px-minimum columns at ≥900px.
+  auto-filling 320px-minimum columns at ≥900px, page capped at 70% width on
+  wide screens.
 - Styling: forced dark theme (dark background, light text, chess.com-ish
   green accents), card grid, responsive single column on mobile.
 
@@ -43,7 +44,9 @@ visually separable so already-thanked gifts aren't re-mentioned.
 - Single-cheer clusters render as one row without extra nesting.
 - Within a cluster, identical cheers (same trophy, image, and description)
   collapse to one row with a `×N` badge and the date (single day) or date span
-  of the collapsed group, newest-first by first occurrence.
+  of the collapsed group, newest-first by first occurrence. Within a cluster,
+  only the first 3 cheer rows show; the rest tuck behind a `Show all N`
+  expander.
 - Missing/bad timestamps → `Unknown date` cluster at the bottom.
 - No persistence: reload re-renders from fresh fetch; "already thanked" is
   eyeballed by cluster.
