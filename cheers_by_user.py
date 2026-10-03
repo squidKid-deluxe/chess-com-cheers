@@ -179,26 +179,54 @@ def write_json(path, username, grouped):
 
 
 def write_html(path, username, grouped):
-    rows = []
+    total = sum(len(v) for v in grouped.values())
+    safe_user = html.escape(username)
+    if not grouped:
+        doc = f"""<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cheers for {safe_user} by giver</title>
+<style>body{{background:#121212;color:#e8e8e8;font-family:sans-serif;max-width:900px;margin:2rem auto;padding:0 1rem}}h1{{font-size:1.4rem}}</style>
+</head><body><h1>Cheers for {safe_user} — 0 cheers</h1><p>No cheers found.</p></body></html>"""
+        with open(path, "w") as f:
+            f.write(doc)
+        return
+    top = list(grouped.items())[:5]
+    links = "".join(
+        f'<li><a href="#giver-{html.escape(g.lower().replace(" ", "-"))}">{html.escape(g)} ({len(v)})</a></li>'
+        for g, v in top
+    )
+    cards = []
     for giver, cheers in grouped.items():
-        counts = Counter(c.get("trophy", "?") for c in cheers)
-        breakdown = ", ".join(
-            f"{n} &times; {html.escape(str(t))}" for t, n in counts.most_common()
+        anchor = f"giver-{html.escape(giver.lower().replace(' ', '-'))}"
+        avatar = next(filter(None, (c.get("from_user_avatar") or "" for c in cheers)), "")
+        avatar_tag = (
+            f'<img src="{html.escape(avatar, quote=True)}" alt="" width="40" height="40" loading="lazy">'
+            if avatar
+            else ""
         )
-        detail = "".join(
-            f"<li>{html.escape(str(fmt_date(c.get('create_date'))))} — "
-            f"{html.escape(str(c.get('trophy')))}</li>"
-            for c in cheers
-        )
-        rows.append(
-            f"<tr><td>{html.escape(giver)}</td><td>{len(cheers)}</td>"
-            f"<td>{breakdown}<ul>{detail}</ul></td></tr>"
-        )
+        parts = [f'<section class="card" id="{anchor}"><header>{avatar_tag}<h2>{html.escape(giver)}</h2><span class="badge">{len(cheers)}</span></header>']
+        for idx, (label, members) in enumerate(cluster_by_date(cheers)):
+            rows = []
+            for c in members:
+                img = c.get("custom_image_url") or ""
+                img_tag = (
+                    f'<img src="{html.escape(img, quote=True)}" alt="" width="48" height="48" loading="lazy">'
+                    if img
+                    else ""
+                )
+                desc = html.escape(str(c.get("description") or ""))
+                rows.append(
+                    f'<li title="{desc}">{img_tag}<span>{html.escape(str(c.get("trophy", "?")))}</span><time>{html.escape(fmt_date(c.get("create_date")))}</time></li>'
+                )
+            open_attr = " open" if idx == 0 else ""
+            parts.append(
+                f'<details{open_attr}><summary>{html.escape(label)}</summary><ul>{"".join(rows)}</ul></details>'
+            )
+        parts.append("</section>")
+        cards.append("".join(parts))
     doc = f"""<!doctype html>
-<html><head><meta charset="utf-8"><title>Cheers for {html.escape(username)} by giver</title>
-<style>body{{font-family:sans-serif;max-width:900px;margin:2rem auto}}table{{border-collapse:collapse;width:100%}}td,th{{border:1px solid #ccc;padding:.5rem;text-align:left}}ul{{margin:.25rem 0}}</style>
-</head><body><h1>Cheers for {html.escape(username)} — grouped by giver</h1>
-<table><tr><th>Giver</th><th>Count</th><th>Cheers</th></tr>{''.join(rows)}</table></body></html>"""
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cheers for {safe_user} by giver</title>
+<style>body{{background:#121212;color:#e8e8e8;font-family:sans-serif;max-width:900px;margin:2rem auto;padding:0 1rem}}a{{color:#7ab648}}.card{{background:#1e1e1e;border:1px solid #333;border-radius:8px;padding:1rem;margin:1rem 0}}.card header{{display:flex;align-items:center;gap:.75rem}}.card img{{border-radius:50%}}.badge{{background:#7ab648;color:#121212;border-radius:999px;padding:.1rem .6rem;font-weight:bold}}details{{margin-top:.75rem}}summary{{cursor:pointer}}ul{{list-style:none;padding:0}}li{{display:flex;align-items:center;gap:.5rem;padding:.25rem 0}}time{{color:#999;margin-left:auto}}@media(max-width:600px){{body{{margin:1rem auto}}}}</style>
+</head><body><h1>Cheers for {safe_user} — {total} cheers from {len(grouped)} givers</h1><nav><h2>Top givers</h2><ol>{links}</ol></nav>{''.join(cards)}</body></html>"""
     with open(path, "w") as f:
         f.write(doc)
 
