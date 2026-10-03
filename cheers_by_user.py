@@ -103,6 +103,52 @@ def group_by_user(cheers):
     return ordered
 
 
+GAP_SECONDS = 3 * 86400
+
+
+def cluster_by_date(cheers):
+    """Group cheers into time clusters. Returns [(label, cheers)] newest-first."""
+    dated = []
+    undated = []
+    for c in cheers:
+        ts = c.get("create_date")
+        if isinstance(ts, bool) or not isinstance(ts, (int, float)):
+            try:
+                ts = int(ts)
+            except (TypeError, ValueError):
+                undated.append(c)
+                continue
+        dated.append((int(ts), c))
+    dated.sort(key=lambda pair: pair[0], reverse=True)
+    undated.sort(key=lambda c: c.get("id", 0), reverse=True)
+    clusters = []
+    current = []
+    prev_ts = None
+    for ts, c in dated:
+        if prev_ts is not None and prev_ts - ts > GAP_SECONDS:
+            clusters.append(current)
+            current = []
+        current.append((ts, c))
+        prev_ts = ts
+    if current:
+        clusters.append(current)
+    result = []
+    for group in clusters:
+        members = [c for _, c in group]
+        stamps = [ts for ts, _ in group]
+        start = fmt_date(min(stamps))
+        end = fmt_date(max(stamps))
+        n = len(members)
+        noun = "1 cheer" if n == 1 else f"{n} cheers"
+        label = f"{start} — {noun}" if start == end else f"{start} to {end} — {noun}"
+        result.append((label, members))
+    if undated:
+        n = len(undated)
+        noun = "1 cheer" if n == 1 else f"{n} cheers"
+        result.append((f"Unknown date — {noun}", undated))
+    return result
+
+
 def fmt_date(ts):
     try:
         return datetime.fromtimestamp(int(ts), tz=timezone.utc).strftime("%Y-%m-%d")
