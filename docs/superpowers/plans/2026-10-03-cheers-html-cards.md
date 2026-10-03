@@ -37,7 +37,7 @@
 
 **Interfaces:**
 - Consumes: cheer dicts shaped like `{"id": int, "create_date": int, "trophy": str, ...}` (same shape as `collect_cheers()` output); `fmt_date(ts: int) -> str` already exists in the same file.
-- Produces: `cluster_by_date(cheers: list[dict]) -> list[tuple[str, list[dict]]]` — input list in any order; output clusters newest-first, each tuple is `(label, cheers_newest_first)`. Labels: single day `"2026-10-02 — 10 cheers"`, span `"2026-09-20 to 2026-09-23 — 5 cheers"`, single cheer `"2026-10-02 — 1 cheer"`, bad/missing timestamps `"Unknown date"`. Split rule: sort newest-first by `create_date`, start a new cluster when the difference between consecutive `create_date` values exceeds 259200 seconds (3×86400). Non-numeric/missing `create_date` values go in the trailing `"Unknown date"` cluster, newest-first by `id`.
+- Produces: `cluster_by_date(cheers: list[dict]) -> list[tuple[str, list[dict]]]` — input list in any order; output clusters newest-first, each tuple is `(label, cheers_newest_first)`. Labels: single day `"2026-10-02 — 10 cheers"`, span `"2026-09-20 to 2026-09-23 — 5 cheers"`, single cheer `"2026-10-02 — 1 cheer"`, bad/missing timestamps trailing `"Unknown date — N cheers"`. Split rule: sort newest-first by `create_date`, start a new cluster when the difference between consecutive `create_date` values exceeds 259200 seconds (3×86400). Non-numeric/missing `create_date` values go in the trailing `"Unknown date"` cluster, newest-first by `id`.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -74,7 +74,7 @@ clusters = cluster_by_date(cheers)
 check(len(clusters) == 3, f"3 clusters, got {len(clusters)}")
 check(len(clusters[0][1]) == 2, "newest burst has 2 cheers")
 check(len(clusters[1][1]) == 2, "older burst has 2 cheers")
-check(clusters[2][0] == "Unknown date", "bad timestamps grouped as Unknown date")
+check(clusters[2][0].startswith("Unknown date"), "bad timestamps grouped as Unknown date")
 check(len(clusters[2][1]) == 2, "unknown cluster has 2 cheers")
 check(" to " not in clusters[0][0], f"same-day label has no range: {clusters[0][0]!r}")
 check("2 cheers" in clusters[0][0], f"count in label: {clusters[0][0]!r}")
