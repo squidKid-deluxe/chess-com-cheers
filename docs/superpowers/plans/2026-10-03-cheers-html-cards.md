@@ -242,7 +242,7 @@ def write_html(path, username, grouped):
     cards = []
     for giver, cheers in grouped.items():
         anchor = f"giver-{html.escape(giver.lower().replace(' ', '-'))}"
-        avatar = (cheers[0].get("from_user_avatar") if cheers else "") or ""
+        avatar = next(filter(None, (c.get("from_user_avatar") or "" for c in cheers)), "")
         avatar_tag = (
             f'<img src="{html.escape(avatar, quote=True)}" alt="" width="40" height="40" loading="lazy">'
             if avatar
