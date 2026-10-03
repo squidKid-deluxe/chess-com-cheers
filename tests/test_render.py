@@ -52,7 +52,7 @@ check("<nav>" not in doc, "redundant leaderboard removed")
 check('class="grid"' in doc, "responsive card grid present")
 check("×2" in doc, "repeated cheers in one cluster collapse to xN")
 check(doc.count(">Taco<") == 1, "collapsed repeat renders a single row")
-check("Show all 4" in doc, "clusters fold cheer rows after 3")
+check("Show all 1" in doc, "clusters fold cheer rows after 3 (hidden count)")
 
 write_html("/tmp/render-empty.html", "Nobody", {})
 empty = open("/tmp/render-empty.html").read()

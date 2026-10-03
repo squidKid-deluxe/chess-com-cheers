@@ -254,7 +254,7 @@ def write_html(path, username, grouped):
             if len(rows) > 3:
                 body = (
                     f"<ul>{''.join(rows[:3])}</ul>"
-                    f'<details class="more"><summary>Show all {len(rows)}</summary>'
+                    f'<details class="more"><summary>Show all {len(rows) - 3}</summary>'
                     f"<ul>{''.join(rows[3:])}</ul></details>"
                 )
             else:
