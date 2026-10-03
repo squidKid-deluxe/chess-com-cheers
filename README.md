@@ -7,6 +7,12 @@ and what they sent.
 
 ![Cheers page showing one card per giver](screenshot.png)
 
+Originally written up as a [suggestion for cheer organization on the
+chess.com forums](https://www.chess.com/forum/view/site-feedback/suggestion-for-cheer-organization):
+the profile Cheers/Awards section is organized by type, which makes it hard
+to tell what each person gave you. This repurposes the same internal APIs to
+organize by user instead.
+
 ## Why a script (CORS)
 
 The chess.com endpoints used here send no `Access-Control-Allow-Origin`
