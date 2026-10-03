@@ -13,7 +13,10 @@ Usage:
     python3 cheers_by_user.py [username]
     python3 cheers_by_user.py squidkid-deluxe --json out.json
     python3 cheers_by_user.py squidkid-deluxe --html out.html
+    python3 cheers_by_user.py squidkid-deluxe --no-html
     python3 cheers_by_user.py squidkid-deluxe --no-progress
+
+    Writes <username>-cheers.html by default; use --no-html to suppress.
 
     Progress bar uses tqdm if installed (pip install tqdm),
     otherwise a simple [i/N] fallback to stderr.
@@ -244,6 +247,7 @@ def main(argv):
     if "--html" in args:
         html_out = args[args.index("--html") + 1]
     show_progress = "--no-progress" not in args
+    no_html = "--no-html" in args
 
     cheers = collect_cheers(username, show_progress=show_progress)
     grouped = group_by_user(cheers)
@@ -251,9 +255,10 @@ def main(argv):
     if json_out:
         write_json(json_out, username, grouped)
         print(f"Wrote {json_out}", file=sys.stderr)
-    if html_out:
-        write_html(html_out, username, grouped)
-        print(f"Wrote {html_out}", file=sys.stderr)
+    if not no_html:
+        html_path = html_out or f"{username}-cheers.html"
+        write_html(html_path, username, grouped)
+        print(f"Wrote {html_path}", file=sys.stderr)
 
 
 if __name__ == "__main__":
