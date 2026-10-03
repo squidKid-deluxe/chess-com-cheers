@@ -223,11 +223,6 @@ def write_html(path, username, grouped):
         with open(path, "w", encoding="utf-8") as f:
             f.write(doc)
         return
-    top = list(grouped.items())[:5]
-    links = "".join(
-        f'<li><a href="#giver-{html.escape(g.lower().replace(" ", "-"))}">{html.escape(g)} ({len(v)})</a></li>'
-        for g, v in top
-    )
     cards = []
     for giver, cheers in grouped.items():
         anchor = f"giver-{html.escape(giver.lower().replace(' ', '-'))}"
@@ -263,8 +258,8 @@ def write_html(path, username, grouped):
         cards.append("".join(parts))
     doc = f"""<!doctype html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cheers for {safe_user} by giver</title>
-<style>body{{background:#121212;color:#e8e8e8;font-family:sans-serif;max-width:900px;margin:2rem auto;padding:0 1rem}}a{{color:#7ab648}}.card{{background:#1e1e1e;border:1px solid #333;border-radius:8px;padding:1rem;margin:1rem 0}}.card header{{display:flex;align-items:center;gap:.75rem}}.card img{{border-radius:50%}}.badge{{background:#7ab648;color:#121212;border-radius:999px;padding:.1rem .6rem;font-weight:bold}}details{{margin-top:.75rem}}summary{{cursor:pointer}}ul{{list-style:none;padding:0}}li{{display:flex;align-items:center;gap:.5rem;padding:.25rem 0}}time{{color:#999;margin-left:auto}}.count{{background:#333;border-radius:6px;padding:.1rem .4rem;font-size:.85rem;white-space:nowrap}}@media(max-width:600px){{body{{margin:1rem auto}}}}</style>
-</head><body><h1>Cheers for {safe_user} — {total} cheers from {len(grouped)} givers</h1><nav><h2>Latest givers</h2><ol>{links}</ol></nav>{''.join(cards)}</body></html>"""
+<style>body{{background:#121212;color:#e8e8e8;font-family:sans-serif;max-width:1100px;margin:2rem auto;padding:0 1rem}}a{{color:#7ab648}}.grid{{display:grid;gap:1rem;grid-template-columns:1fr}}.card{{background:#1e1e1e;border:1px solid #333;border-radius:8px;padding:1rem;margin:0}}.card header{{display:flex;align-items:center;gap:.75rem}}.card img{{border-radius:50%}}.badge{{background:#7ab648;color:#121212;border-radius:999px;padding:.1rem .6rem;font-weight:bold}}.count{{background:#333;border-radius:6px;padding:.1rem .4rem;font-size:.85rem;white-space:nowrap}}details{{margin-top:.75rem}}summary{{cursor:pointer}}ul{{list-style:none;padding:0}}li{{display:flex;align-items:center;gap:.5rem;padding:.25rem 0}}time{{color:#999;margin-left:auto}}@media(max-width:600px){{body{{margin:1rem auto}}}}@media(min-width:900px){{.grid{{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}}}}</style>
+</head><body><h1>Cheers for {safe_user} — {total} cheers from {len(grouped)} givers</h1><div class="grid">{''.join(cards)}</div></body></html>"""
     with open(path, "w", encoding="utf-8") as f:
         f.write(doc)
 

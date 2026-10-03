@@ -26,8 +26,9 @@ visually separable so already-thanked gifts aren't re-mentioned.
   collapsed.
 - Cheer row: trophy thumbnail (`custom_image_url`), trophy name, date
   `YYYY-MM-DD`, description as hover `title`.
-- Page header: `Cheers for <user> — N cheers from M givers` + latest-5 giver
-  leaderboard with anchor links to cards.
+- Page header only (`Cheers for <user> — N cheers from M givers`); no
+  leaderboard nav. Cards sit in a responsive grid: single column narrow,
+  auto-filling 320px-minimum columns at ≥900px.
 - Styling: forced dark theme (dark background, light text, chess.com-ish
   green accents), card grid, responsive single column on mobile.
 
